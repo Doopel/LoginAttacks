@@ -20,7 +20,7 @@ if __name__ == "__main__":
     generated_passwords = passGenerator()
 
     for guess in generated_passwords:
-        sniffer = Sniffer('eth0', 'tcp port 80',120)
+        sniffer = Sniffer('eth0', 'host 192.168.1.50 and tcp port 80',120)
         sniffer.start()
         sleep(1)
         generator = threading.Thread(target=dataGenerator.generateData, args=(guess,))

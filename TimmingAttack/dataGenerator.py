@@ -7,7 +7,7 @@ from requests import RequestException
 username = "admin"
 target_url = "http://192.168.1.50"
 ip = '192.168.1.50'
-cookie = '4c44c000ae01109a0a'
+cookie = 'ae3410008a00f3450d'
 
 data = {}
 

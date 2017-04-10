@@ -16,21 +16,6 @@ import dpkt
 from dpkt.compat import compat_ord
 
 
-def connection_id_to_str(cid, v=4):
-    """This converts the connection ID cid which is a tuple of (source_ip_address, source_tcp_port, destination_ip_address,
-destination_tcp_port) to a string.  v is either 4 for IPv4 or 6 for IPv6"""
-    if v == 4:
-        src_ip_addr_str = socket.inet_ntoa(cid[0])
-        dst_ip_addr_str = socket.inet_ntoa(cid[2])
-        return src_ip_addr_str + ":" + str(cid[1]) + "=>" + dst_ip_addr_str + ":" + str(cid[3])
-    elif v == 6:
-        src_ip_addr_str = socket.inet_ntop(socket.AF_INET6, cid[0])
-        dst_ip_addr_str = socket.inet_ntop(socket.AF_INET6, cid[2])
-        return src_ip_addr_str + "." + str(cid[1]) + "=>" + dst_ip_addr_str + "." + str(cid[3])
-    else:
-        raise ValueError('Argument to connection_id_to_str must be 4 or 6, is %d' % v)
-
-
 def mac_addr(address):
     """Convert a MAC address to a readable/printable string
 
@@ -57,7 +42,7 @@ def inet_to_str(inet):
         return socket.inet_ntop(socket.AF_INET6, inet)
 
 
-def print_http_requests(pcap, password):
+def parseData(pcap, password):
     """Print out information about each packet in a pcap
 
        Args:
@@ -67,8 +52,9 @@ def print_http_requests(pcap, password):
     # For each packet in the pcap process the contents
     for timestamp, buf in pcap:
         if count == 0:
-            previous_packet = dpkt.ethernet.Ethernet(buf).data.data
-            count+=1
+            previous_TCPpacket = dpkt.ethernet.Ethernet(buf).data.data
+            previous_timestamp = timestamp
+            count += 1
         else:
             # Unpack the Ethernet frame (mac src/dst, ethertype)
             eth = dpkt.ethernet.Ethernet(buf)
@@ -87,52 +73,67 @@ def print_http_requests(pcap, password):
                 # Set the TCP data
                 tcpData = ip.data
 
-
                 # Now see if we can parse the contents as a HTTP request
                 f = BytesIO(tcpData.data)
                 line = f.readline().decode("ascii", "ignore")
                 l = line.strip().split()
 
-                if len(l) > 0 and ('HTTP' in l[0]):  # 'POST' in l[0] or
+                f2 = BytesIO(previous_TCPpacket.data)
+                line2 = f2.readline().decode("ascii", "ignore")
+                l2 = line2.strip().split()
 
-                    # Pull out fragment information (flags and offset all packed into off field, so use bitmasks)
-                    do_not_fragment = bool(ip.off & dpkt.ip.IP_DF)
-                    more_fragments = bool(ip.off & dpkt.ip.IP_MF)
-                    fragment_offset = ip.off & dpkt.ip.IP_OFFMASK
+                try:
+                    if len(l) > 0 and ('HTTP' in l[0] and len(l2) == 0):
 
-                    # Print out the info
-                    print('Timestamp: ', str(datetime.datetime.utcfromtimestamp(timestamp)))
-                    print('Ethernet Frame: ', mac_addr(eth.src), mac_addr(eth.dst), eth.type)
-                    print('IP: %s -> %s   (len=%d ttl=%d DF=%d MF=%d offset=%d)' %
-                          (inet_to_str(ip.src), inet_to_str(ip.dst), ip.len, ip.ttl, do_not_fragment, more_fragments,
-                           fragment_offset))
+                        # Pull out fragment information (flags and offset all packed into off field, so use bitmasks)
+                        do_not_fragment = bool(ip.off & dpkt.ip.IP_DF)
+                        more_fragments = bool(ip.off & dpkt.ip.IP_MF)
+                        fragment_offset = ip.off & dpkt.ip.IP_OFFMASK
+
+                        # Print out the info
+                        print('Timestamp: ', str(
+                            datetime.datetime.utcfromtimestamp(timestamp) - datetime.datetime.utcfromtimestamp(
+                                previous_timestamp)))
+                        print('Ethernet Frame: ', mac_addr(eth.src), mac_addr(eth.dst), eth.type)
+                        print('IP: %s -> %s   (len=%d ttl=%d DF=%d MF=%d offset=%d)' %
+                              (
+                              inet_to_str(ip.src), inet_to_str(ip.dst), ip.len, ip.ttl, do_not_fragment, more_fragments,
+                              fragment_offset))
+                        print(l)
+                        print(l2)
+
+                        # Get and calculate time elapse between request and server response
 
 
-                    # Get and calculate time elapse between request and server response
+                        actualOptions = fetchOptions(tcpData)
+                        previous_options = fetchOptions(previous_TCPpacket)
 
+                        elapse = actualOptions.get('tsval') - previous_options.get('tsval') #str(datetime.datetime.utcfromtimestamp(timestamp) - datetime.datetime.utcfromtimestamp(
+                            #previous_timestamp)).split(':')[
+                            #2]
 
-                    actualOptions = fetchOptions(tcpData)
-                    previous_options = fetchOptions(previous_packet)
+                        previous_TCPpacket = tcpData
+                        previous_timestamp = timestamp
 
+                        # write info into txt
 
-                    try:
-                        elapse = actualOptions.get('tsval') - previous_options.get('tsval')
-                    except Exception as e:
-                        pass
+                        if os.path.isfile('wireData/' + password + '.txt'):
+                            file = open('wireData/' + password + '.txt', 'a')
+                        else:
+                            file = open('wireData/' + password + '.txt', 'w+')
 
-                    previous_packet = dpkt.ethernet.Ethernet(buf).data.data
-                    # write info into txt
+                        file.write(password + ':' + str(elapse) + '\n')
+                        file.close()
 
-                    if os.path.isfile('wireData/' + password + '.txt'):
-                        file = open('wireData/' + password + '.txt', 'a')
+                        # Check for Header spanning acrossed TCP segments
+                        if not tcpData.data.endswith(b'\r\n'):
+                            print('\nHEADER TRUNCATED! Reassemble TCP segments!\n')
                     else:
-                        file = open('wireData/' + password + '.txt', 'w+')
-                    file.write(password + ':' + str(elapse) + '\n')
-                    file.close()
+                        previous_TCPpacket = tcpData
+                        previous_timestamp = timestamp
 
-                    # Check for Header spanning acrossed TCP segments
-                    if not tcpData.data.endswith(b'\r\n'):
-                        print('\nHEADER TRUNCATED! Reassemble TCP segments!\n')
+                except Exception as e:
+                    continue
 
 
 def fetchOptions(tcpData):
@@ -162,8 +163,7 @@ def parser():
         password = file.split('/')[1].split('.')[0]
         with open(str(file), 'rb') as f:
             pcap = dpkt.pcap.Reader(f)
-            print_http_requests(pcap,password)
+            parseData(pcap, password)
+
+
 parser()
-
-
-

@@ -1,10 +1,6 @@
-import numpy as np
-
 import glob
-from scipy.stats import norm
-import matplotlib.mlab as mlab
+
 import matplotlib.pyplot as plt
-import pylab
 
 files = glob.glob("wireData/*.txt")
 files.sort()
