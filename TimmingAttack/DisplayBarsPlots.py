@@ -17,7 +17,7 @@ for file in files:
     f = open(file, 'r')
     for line in f:
         (password, sec) = line.strip().split(':')
-        if float(sec) < 50 and float(sec) > 0:
+        if 32 > float(sec) > 0:
             times.append(float(sec))
     medias.append(np.mean(times))
     passwords.append(password)

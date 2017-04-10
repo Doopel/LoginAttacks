@@ -18,9 +18,9 @@ for file in files:
     f = open(file, 'r')
     for line in f:
         (password, sec) = line.strip().split(':')
-        if float(sec) < 20:
+        if 32 > float(sec) > 0:
             times.append(float(sec))
-    data[password]=times
+    data[password] = times
     passwords.append(password)
     times = []
     f.close()

@@ -13,14 +13,7 @@ def passGenerator():
     return [''.join(i) for i in itertools.product(alphabet, repeat=1)]
 
 
-alphabet = ['bYrShLk3O3i2Q5gX89sbt23stqDaUz', 'bYrShLk3O3i2Q5g','dfdffga']  # string.ascii_lowercase  # + string.digits + string.ascii_uppercase
-
-
-def df():
-    for i in range(10):
-        r = requests.get(
-            'http://www.secdev.org/projects/scapy/')
-        print(r.status_code)
+alphabet = ['bYrShLk3O3i2Q5gX89sbt23stqDaUz', 'bYrShLk3O3i2Q5g','a']  # string.ascii_lowercase  # + string.digits + string.ascii_uppercase
 
 
 if __name__ == "__main__":
