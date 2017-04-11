@@ -27,10 +27,10 @@ for file in files:
     f.close()
 
 
-print(varianzas)
-print(medias)
-print(passwords)
-print(medianas)
+print('Varianzas: ' + str(varianzas))
+print('Medias: ' + str(medias))
+print('Passwords: ' + str(passwords))
+print('Medianas: ' + str(medianas))
 
 ind = np.arange(len(passwords))
 width = 0.25
