@@ -6,7 +6,6 @@ from TimmingAttack import dataGenerator
 from TimmingAttack.pcapParser import parser
 from TimmingAttack.sniffer import *
 
-
 def passGenerator():
     return [''.join(i) for i in itertools.product(alphabet, repeat=1)]
 
