@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 files = glob.glob("wireData/*.txt")
 files.sort()
 
+
 data = {}
 times = []
 passwords = []
